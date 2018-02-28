@@ -1,9 +1,17 @@
 package eu.fiskaljdoo.stocktaking.activities;
 
+import android.content.DialogInterface;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
+import android.widget.NumberPicker;
 
 import java.util.List;
 
@@ -23,18 +31,24 @@ public class ActivityResults extends AppCompatActivity {
     private RecyclerView recyclerView;
     private AdapterResults adapterResults;
 
+    private int selectedInventureNumber;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_results);
 
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
         db = new DatabaseHandler(this);
-        results = db.getAllResults();
+        selectedInventureNumber = db.getLastResult().getInventureNumber();
+        results = db.getInventureResults(selectedInventureNumber);
 
         recyclerView = findViewById(R.id.rv);
         recyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
 
         setAdapter();
+
     }
 
     private void setAdapter(){
@@ -52,6 +66,9 @@ public class ActivityResults extends AppCompatActivity {
     DialogEditResult.OnDismissListener onDismissListener = new DialogEditResult.OnDismissListener() {
         @Override
         public void onDismiss(Result r) {
+            if (r == null){
+                return;
+            }
             for (int i=0; i<results.size(); i++){
                 if (results.get(i).getArticle().getCode().equals(r.getArticle().getCode())){
                     results.set(i, r);
@@ -61,4 +78,52 @@ public class ActivityResults extends AppCompatActivity {
             }
         }
     };
+
+    private void startNumberPickerDialog(){
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Broj inventure");
+        builder.setNegativeButton("Odustani", null);
+        builder.setPositiveButton("Postavi", null);
+
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_quantity_picker, null);
+        final NumberPicker np = dialogView.findViewById(R.id.numberPicker);
+        List<Integer> inventureNumbers = db.getInventureNumbers();
+        np.setMaxValue(inventureNumbers.size() > 0 ? inventureNumbers.get(inventureNumbers.size()-1) : 0);
+        np.setMinValue(inventureNumbers.size() > 0 ? inventureNumbers.get(0) : 0);
+        np.setValue(selectedInventureNumber);
+        np.setWrapSelectorWheel(false);
+
+        builder.setView(dialogView);
+        final AlertDialog dialog = builder.show();
+
+        Button setButton = dialog.getButton(DialogInterface.BUTTON_POSITIVE);
+        setButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                selectedInventureNumber = np.getValue();
+                results = db.getInventureResults(selectedInventureNumber);
+                setAdapter();
+                dialog.dismiss();
+            }
+        });
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_activity_results, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()){
+            case R.id.action_select_inventure_number:
+                startNumberPickerDialog();
+                break;
+            default:
+                onBackPressed();
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
 }

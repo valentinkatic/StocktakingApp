@@ -5,9 +5,9 @@
     <string name="VIEW_DATE_PATTERN">dd. MM. yyyy. HH:mm</string>
 
     <string name="admob_app_id" translatable="false">ca-app-pub-6648922626009706~9948531422</string>
-    <!-- This is an ad unit ID for a test ad. Replace with your own banner ad unit id. -->
+    <!-- This is an ad unit ID for a test ad. Replace with your own banner ad uinventureNumbert id. -->
     <string name="banner_ad_unit_id" translatable="false">ca-app-pub-6648922626009706/8881973715</string>
-    <!--Replace with your own interstitial ad unit id. -->
+    <!--Replace with your own interstitial ad uinventureNumbert id. -->
     <string name="interstitial_ad_unit_id" translatable="false">ca-app-pub-6648922626009706/7454230029</string>
     <string name="ad_test_device" translatable="false">B40E90FDBDB7ADE2599BF22B9A73E32D</string>
 

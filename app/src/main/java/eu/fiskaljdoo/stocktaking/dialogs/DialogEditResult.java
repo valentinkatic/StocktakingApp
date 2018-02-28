@@ -14,6 +14,7 @@ import android.widget.Toast;
 import java.text.DecimalFormat;
 import java.util.Locale;
 
+import eu.fiskaljdoo.stocktaking.Constants;
 import eu.fiskaljdoo.stocktaking.R;
 import eu.fiskaljdoo.stocktaking.data.DatabaseHandler;
 import eu.fiskaljdoo.stocktaking.models.Article;
@@ -64,6 +65,13 @@ public class DialogEditResult extends DialogFragment {
                 db.updateArticle(a);
 
                 Result r = new Result();
+                if (Constants.inventureNumber == 0){
+                    r.setInventureNumber(++Constants.inventureNumber);
+                } else {
+                    r.setInventureNumber(Constants.newInventureStarted ? ++Constants.inventureNumber : Constants.inventureNumber);
+                    Constants.newInventureStarted = false;
+                }
+                r.setId(result.getId());
                 r.setArticle(a);
                 r.setAmount(Double.parseDouble(et_amount.getText().toString()));
                 r = db.updateResult(r);
@@ -71,6 +79,12 @@ public class DialogEditResult extends DialogFragment {
                 Toast.makeText(getActivity(),"Uspješno spremljeno", Toast.LENGTH_SHORT).show();
 
                 onDismissListener.onDismiss(r);
+            }
+        });
+        builder.setNegativeButton("Odustani", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                onDismissListener.onDismiss(null);
             }
         });
 

@@ -18,6 +18,7 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
 
+import eu.fiskaljdoo.stocktaking.Constants;
 import eu.fiskaljdoo.stocktaking.R;
 import eu.fiskaljdoo.stocktaking.models.Article;
 import eu.fiskaljdoo.stocktaking.models.Result;
@@ -27,6 +28,8 @@ import eu.fiskaljdoo.stocktaking.models.Result;
  */
 
 public class DatabaseHandler extends SQLiteOpenHelper {
+
+    private static final String TAG = "DatabaseHandler";
 
     private SQLiteDatabase db;
     private Context context;
@@ -46,6 +49,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     private static final String KEY_NAME = "name";
 
     // Table Columns names TABLE_RESULTS
+    private static final String KEY_RESULT_ID = "id";
+    private static final String KEY_INVENTURE_NUMBER = "inventure_number";
     private static final String KEY_RELATION_ARTICLE_CODE = KEY_ARTICLE_CODE;
     private static final String KEY_AMOUNT = "amount";
     private static final String KEY_DATE = "date";
@@ -73,7 +78,9 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     private void createTableResults(SQLiteDatabase db){
         String CREATE_TABLE = "CREATE TABLE " + TABLE_RESULTS + " ("
-                + KEY_RELATION_ARTICLE_CODE + " TEXT PRIMARY KEY, "
+                + KEY_RESULT_ID + " INTEGER PRIMARY KEY , "
+                + KEY_INVENTURE_NUMBER + " INT, "
+                + KEY_RELATION_ARTICLE_CODE + " TEXT, "
                 + KEY_AMOUNT + " REAL, "
                 + KEY_DATE + " TEXT, "
                 + KEY_USER + " TEXT "
@@ -163,30 +170,48 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         Calendar c = Calendar.getInstance();
         SimpleDateFormat sdf = new SimpleDateFormat(context.getString(R.string.ISO_8601_PATTERN_1), Locale.getDefault());
         result.setDate(sdf.format(c.getTime()));
+        Log.d(TAG, "resultID: " + result.getId());
+        if (result.getId()==0){
+            result.setId(getLastResult().getId() + 1);
+        }
 
         List<Result> objcs = new ArrayList<>();
         objcs.add(result);
         insertListResult(objcs);
-        if(isResultExist(result.getArticle())){
+        if(isResultExist(result.getId())){
             return getResult(result.getArticle().getCode());
         }
         return null;
     }
 
     private List<Result> getListResultByCursor(Cursor cur) {
-        List<Result> locList = new ArrayList<>();
+        List<Result> resList = new ArrayList<>();
         // looping through all rows and adding to list
         if (cur.moveToFirst()) {
             do {
                 // Adding place to list
-                locList.add(getResultByCursor(cur));
+                resList.add(getResultByCursor(cur));
             } while (cur.moveToNext());
         }
-        return locList;
+        return resList;
+    }
+
+    private List<Integer> getListInventureNumberByCursor(Cursor cur) {
+        List<Integer> list = new ArrayList<>();
+        // looping through all rows and adding to list
+        if (cur.moveToFirst()) {
+            do {
+                // Adding place to list
+                list.add(cur.getInt(cur.getColumnIndex(KEY_INVENTURE_NUMBER)));
+            } while (cur.moveToNext());
+        }
+        return list;
     }
 
     private ContentValues getResultValue(Result model){
         ContentValues values = new ContentValues();
+        values.put(KEY_RESULT_ID, model.getId());
+        values.put(KEY_INVENTURE_NUMBER, model.getInventureNumber());
         values.put(KEY_RELATION_ARTICLE_CODE, model.getArticle().getCode());
         values.put(KEY_AMOUNT, model.getAmount());
         values.put(KEY_DATE, model.getDate());
@@ -196,9 +221,9 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     public Result getResult(String article_id) {
         Result r = new Result();
-        String query = "SELECT * FROM " + TABLE_RESULTS + " r WHERE r." + KEY_RELATION_ARTICLE_CODE + " = ?";
-        Cursor cursor = db.rawQuery(query, new String[]{article_id+""});
-        r.setArticle(new Article(article_id));
+        String query = "SELECT * FROM " + TABLE_RESULTS + " r WHERE r." + KEY_RELATION_ARTICLE_CODE + " = ? AND r." + KEY_INVENTURE_NUMBER + " = ?";
+        Cursor cursor = db.rawQuery(query, new String[]{article_id+"", Constants.newInventureStarted ? Constants.inventureNumber+1+"" : Constants.inventureNumber+""});
+        r.setArticle(getArticle(article_id));
         if (cursor.moveToFirst()) {
             cursor.moveToFirst();
             r = getResultByCursor(cursor);
@@ -206,8 +231,39 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         return r;
     }
 
+    public Result getLastResult(){
+        Result r = new Result();
+        String query = "SELECT * FROM " + TABLE_RESULTS + " ORDER BY " + KEY_INVENTURE_NUMBER + " DESC LIMIT 1";
+        Cursor cursor = db.rawQuery(query, new String[]{});
+        if (cursor.moveToFirst()) {
+            cursor.moveToFirst();
+            r = getResultByCursor(cursor);
+        }
+        return r;
+    }
+
+    public String getLastResultChangeDate(){
+        Result r = new Result();
+        String query = "SELECT * FROM " + TABLE_RESULTS + " ORDER BY " + KEY_DATE + " DESC LIMIT 1";
+        Cursor cursor = db.rawQuery(query, new String[]{});
+        if (cursor.moveToFirst()) {
+            cursor.moveToFirst();
+            r = getResultByCursor(cursor);
+        }
+        return r.getDate();
+    }
+
+    public List<Integer> getInventureNumbers(){
+        List<Integer> list;
+        Cursor cursor = db.rawQuery("SELECT DISTINCT " + KEY_INVENTURE_NUMBER + " FROM " + TABLE_RESULTS, null);
+        list = getListInventureNumberByCursor(cursor);
+        return list;
+    }
+
     private Result getResultByCursor(Cursor cur){
         return new Result(
+                cur.getInt(cur.getColumnIndex(KEY_RESULT_ID)),
+                cur.getInt(cur.getColumnIndex(KEY_INVENTURE_NUMBER)),
                 getArticle(cur.getString(cur.getColumnIndex(KEY_RELATION_ARTICLE_CODE))),
                 cur.getDouble(cur.getColumnIndex(KEY_AMOUNT)),
                 cur.getString(cur.getColumnIndex(KEY_DATE)),
@@ -216,11 +272,11 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
     // all Results
-    public List<Result> getAllResults() {
-        List<Result> locList;
-        Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_RESULTS , null);
-        locList = getListResultByCursor(cursor);
-        return locList;
+    public List<Result> getInventureResults(int inventureNumber) {
+        List<Result> resList;
+        Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_RESULTS + " WHERE " + KEY_INVENTURE_NUMBER + " = " + inventureNumber, null);
+        resList = getListResultByCursor(cursor);
+        return resList;
     }
 
     private boolean isArticleExist(String id) {
@@ -235,9 +291,9 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         }
     }
 
-    public boolean isResultExist(Article a) {
-        String query = "SELECT * FROM " + TABLE_RESULTS + " WHERE " + KEY_RELATION_ARTICLE_CODE + " = ?";
-        Cursor cursor = db.rawQuery(query, new String[]{a.getCode() + ""});
+    public boolean isResultExist(int id) {
+        String query = "SELECT * FROM " + TABLE_RESULTS + " WHERE " + KEY_RESULT_ID + " = ?";
+        Cursor cursor = db.rawQuery(query, new String[]{id + ""});
         int count = cursor.getCount();
         cursor.close();
         if (count > 0) {
