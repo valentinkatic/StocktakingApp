@@ -6,7 +6,7 @@ package eu.fiskaljdoo.stocktaking;
 
 public class Constants {
 
-    public static int inventureNumber = 0;
-    public static boolean newInventureStarted = false;
+    public static int stocktakingNumber = 0;
+    public static boolean newStocktakingStarted = false;
 
 }

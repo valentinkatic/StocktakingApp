@@ -20,6 +20,7 @@ import eu.fiskaljdoo.stocktaking.R;
 import eu.fiskaljdoo.stocktaking.data.DatabaseHandler;
 import eu.fiskaljdoo.stocktaking.data.SharedPref;
 import eu.fiskaljdoo.stocktaking.utils.PermissionUtil;
+import eu.fiskaljdoo.stocktaking.utils.Tools;
 
 import static eu.fiskaljdoo.stocktaking.utils.PermissionUtil.CAMERA_PERMISSION;
 import static eu.fiskaljdoo.stocktaking.utils.PermissionUtil.STORAGE_PERMISSION;
@@ -37,7 +38,7 @@ public class ActivityMain extends AppCompatActivity {
         prefs = new SharedPref(this);
         db = new DatabaseHandler(this);
 
-        findViewById(R.id.btn_start_camera).setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.lyt_start_scanner).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if (PermissionUtil.isCameraGranted(ActivityMain.this)) {
@@ -48,18 +49,18 @@ public class ActivityMain extends AppCompatActivity {
             }
         });
 
-        findViewById(R.id.btn_show_all).setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.lyt_show_all).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 startShowAllAct();
             }
         });
 
-        findViewById(R.id.btn_backup).setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.lyt_backup).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if (PermissionUtil.isStorageGranted(ActivityMain.this)) {
-                    backup();
+                    export();
                 } else {
                     requestPermissions(PermissionUtil.PERMISSION_ALL, STORAGE_PERMISSION);
                 }
@@ -68,9 +69,9 @@ public class ActivityMain extends AppCompatActivity {
     }
 
     private void checkLastInventureNumber(){
-        Constants.inventureNumber = db.getLastResult().getInventureNumber();
+        Constants.stocktakingNumber = db.getLastResult().getStocktakingNumber();
 
-        if (Constants.inventureNumber>0) {
+        if (Constants.stocktakingNumber >0) {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setTitle("Želite li nastaviti prethodnu inventuru ili započeti novu?");
             try {
@@ -86,14 +87,14 @@ public class ActivityMain extends AppCompatActivity {
             builder.setPositiveButton("Nastavi prethodnu", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialogInterface, int i) {
-                    Constants.newInventureStarted = false;
+                    Constants.newStocktakingStarted = false;
                     startScanner();
                 }
             });
             builder.setNegativeButton("Započni novu", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialogInterface, int i) {
-                    Constants.newInventureStarted = true;
+                    Constants.newStocktakingStarted = true;
                     startScanner();
                 }
             });
@@ -114,9 +115,8 @@ public class ActivityMain extends AppCompatActivity {
         startActivity(i);
     }
 
-    private void backup(){
-        db.exportDatabase();
-        Toast.makeText(ActivityMain.this, "Backup successful", Toast.LENGTH_SHORT).show();
+    private void export(){
+        Tools.exportToExcel(this, db.getStocktakingResults(db.getLastResult().getStocktakingNumber()));
     }
 
     @Override
@@ -139,9 +139,9 @@ public class ActivityMain extends AppCompatActivity {
                     prefs.setNeverAskAgain(perm, !rationale);
                 }
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    backup();
+                    export();
                 } else {
-                    Toast.makeText(this, "Morate omogućiti zapisivanje na uređaj kako bi se backup mogao spremiti", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Morate omogućiti zapisivanje na uređaj kako bi se export mogao spremiti", Toast.LENGTH_SHORT).show();
                 }
                 return;
         }

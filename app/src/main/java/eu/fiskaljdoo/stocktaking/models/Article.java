@@ -11,6 +11,7 @@ public class Article implements Parcelable {
 
     private String code;
     private String name;
+    private double price;
 
     public Article() {
     }
@@ -19,9 +20,10 @@ public class Article implements Parcelable {
         this.code = code;
     }
 
-    public Article(String code, String name) {
+    public Article(String code, String name, double price) {
         this.code = code;
         this.name = name;
+        this.price = price;
     }
 
     public String getCode() {
@@ -40,6 +42,14 @@ public class Article implements Parcelable {
         this.name = name;
     }
 
+    public double getPrice() {
+        return price;
+    }
+
+    public void setPrice(double price) {
+        this.price = price;
+    }
+
     @Override
     public int describeContents() {
         return 0;
@@ -49,11 +59,13 @@ public class Article implements Parcelable {
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeString(this.code);
         dest.writeString(this.name);
+        dest.writeDouble(this.price);
     }
 
     protected Article(Parcel in) {
         this.code = in.readString();
         this.name = in.readString();
+        this.price = in.readDouble();
     }
 
     public static final Creator<Article> CREATOR = new Creator<Article>() {

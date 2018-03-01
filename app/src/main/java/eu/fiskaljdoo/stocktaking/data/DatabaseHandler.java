@@ -21,6 +21,7 @@ import java.util.Locale;
 import eu.fiskaljdoo.stocktaking.Constants;
 import eu.fiskaljdoo.stocktaking.R;
 import eu.fiskaljdoo.stocktaking.models.Article;
+import eu.fiskaljdoo.stocktaking.models.Stocktaking;
 import eu.fiskaljdoo.stocktaking.models.Result;
 
 /**
@@ -38,7 +39,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     private static final int DATABASE_VERSION = 1;
 
     // Database Name
-    private static final String DATABASE_NAME = "stocktaking";
+    public static final String DATABASE_NAME = "stocktaking";
 
     // Main Table Name
     private static final String TABLE_ARTICLES = "articles";
@@ -47,10 +48,11 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     // Table Columns names TABLE_ARTICLES
     private static final String KEY_ARTICLE_CODE = "article_code";
     private static final String KEY_NAME = "name";
+    private static final String KEY_PRICE = "price";
 
     // Table Columns names TABLE_RESULTS
     private static final String KEY_RESULT_ID = "id";
-    private static final String KEY_INVENTURE_NUMBER = "inventure_number";
+    private static final String KEY_STOCKTAKING_NUMBER = "stocktaking_number";
     private static final String KEY_RELATION_ARTICLE_CODE = KEY_ARTICLE_CODE;
     private static final String KEY_AMOUNT = "amount";
     private static final String KEY_DATE = "date";
@@ -71,7 +73,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     private void createTableArticles(SQLiteDatabase db){
         String CREATE_TABLE = "CREATE TABLE " + TABLE_ARTICLES + " ("
                 + KEY_ARTICLE_CODE + " TEXT PRIMARY KEY, "
-                + KEY_NAME + " TEXT "
+                + KEY_NAME + " TEXT, "
+                + KEY_PRICE + " REAL "
                 + ")";
         db.execSQL(CREATE_TABLE);
     }
@@ -79,7 +82,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     private void createTableResults(SQLiteDatabase db){
         String CREATE_TABLE = "CREATE TABLE " + TABLE_RESULTS + " ("
                 + KEY_RESULT_ID + " INTEGER PRIMARY KEY , "
-                + KEY_INVENTURE_NUMBER + " INT, "
+                + KEY_STOCKTAKING_NUMBER + " INT, "
                 + KEY_RELATION_ARTICLE_CODE + " TEXT, "
                 + KEY_AMOUNT + " REAL, "
                 + KEY_DATE + " TEXT, "
@@ -133,6 +136,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         ContentValues values = new ContentValues();
         values.put(KEY_ARTICLE_CODE, model.getCode());
         values.put(KEY_NAME, model.getName());
+        values.put(KEY_PRICE, model.getPrice());
         return values;
     }
 
@@ -151,7 +155,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     private Article getArticleByCursor(Cursor cur){
         return new Article(
                 cur.getString(cur.getColumnIndex(KEY_ARTICLE_CODE)),
-                cur.getString(cur.getColumnIndex(KEY_NAME))
+                cur.getString(cur.getColumnIndex(KEY_NAME)),
+                cur.getDouble(cur.getColumnIndex(KEY_PRICE))
         );
     }
 
@@ -196,13 +201,13 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         return resList;
     }
 
-    private List<Integer> getListInventureNumberByCursor(Cursor cur) {
+    private List<Integer> getListStocktakingNumberByCursor(Cursor cur) {
         List<Integer> list = new ArrayList<>();
         // looping through all rows and adding to list
         if (cur.moveToFirst()) {
             do {
                 // Adding place to list
-                list.add(cur.getInt(cur.getColumnIndex(KEY_INVENTURE_NUMBER)));
+                list.add(cur.getInt(cur.getColumnIndex(KEY_STOCKTAKING_NUMBER)));
             } while (cur.moveToNext());
         }
         return list;
@@ -211,7 +216,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     private ContentValues getResultValue(Result model){
         ContentValues values = new ContentValues();
         values.put(KEY_RESULT_ID, model.getId());
-        values.put(KEY_INVENTURE_NUMBER, model.getInventureNumber());
+        values.put(KEY_STOCKTAKING_NUMBER, model.getStocktakingNumber());
         values.put(KEY_RELATION_ARTICLE_CODE, model.getArticle().getCode());
         values.put(KEY_AMOUNT, model.getAmount());
         values.put(KEY_DATE, model.getDate());
@@ -221,8 +226,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     public Result getResult(String article_id) {
         Result r = new Result();
-        String query = "SELECT * FROM " + TABLE_RESULTS + " r WHERE r." + KEY_RELATION_ARTICLE_CODE + " = ? AND r." + KEY_INVENTURE_NUMBER + " = ?";
-        Cursor cursor = db.rawQuery(query, new String[]{article_id+"", Constants.newInventureStarted ? Constants.inventureNumber+1+"" : Constants.inventureNumber+""});
+        String query = "SELECT * FROM " + TABLE_RESULTS + " r WHERE r." + KEY_RELATION_ARTICLE_CODE + " = ? AND r." + KEY_STOCKTAKING_NUMBER + " = ?";
+        Cursor cursor = db.rawQuery(query, new String[]{article_id+"", Constants.newStocktakingStarted ? Constants.stocktakingNumber +1+"" : Constants.stocktakingNumber +""});
         r.setArticle(getArticle(article_id));
         if (cursor.moveToFirst()) {
             cursor.moveToFirst();
@@ -233,7 +238,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     public Result getLastResult(){
         Result r = new Result();
-        String query = "SELECT * FROM " + TABLE_RESULTS + " ORDER BY " + KEY_INVENTURE_NUMBER + " DESC LIMIT 1";
+        String query = "SELECT * FROM " + TABLE_RESULTS + " ORDER BY " + KEY_STOCKTAKING_NUMBER + " DESC LIMIT 1";
         Cursor cursor = db.rawQuery(query, new String[]{});
         if (cursor.moveToFirst()) {
             cursor.moveToFirst();
@@ -253,17 +258,31 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         return r.getDate();
     }
 
-    public List<Integer> getInventureNumbers(){
-        List<Integer> list;
-        Cursor cursor = db.rawQuery("SELECT DISTINCT " + KEY_INVENTURE_NUMBER + " FROM " + TABLE_RESULTS, null);
-        list = getListInventureNumberByCursor(cursor);
+    public String getResultChangeDate(int stocktakingNumber){
+        Result r = new Result();
+        String query = "SELECT * FROM " + TABLE_RESULTS + " WHERE " + KEY_STOCKTAKING_NUMBER + " = " + stocktakingNumber +" ORDER BY " + KEY_DATE + " DESC LIMIT 1";
+        Cursor cursor = db.rawQuery(query, new String[]{});
+        if (cursor.moveToFirst()) {
+            cursor.moveToFirst();
+            r = getResultByCursor(cursor);
+        }
+        return r.getDate();
+    }
+
+    public List<Stocktaking> getStocktaking(){
+        List<Stocktaking> list = new ArrayList<>();
+        Cursor cursor = db.rawQuery("SELECT DISTINCT " + KEY_STOCKTAKING_NUMBER + " FROM " + TABLE_RESULTS, null);
+        List<Integer> stocktakingNumbers = getListStocktakingNumberByCursor(cursor);
+        for (int i: stocktakingNumbers){
+            list.add(new Stocktaking(i, getResultChangeDate(i)));
+        }
         return list;
     }
 
     private Result getResultByCursor(Cursor cur){
         return new Result(
                 cur.getInt(cur.getColumnIndex(KEY_RESULT_ID)),
-                cur.getInt(cur.getColumnIndex(KEY_INVENTURE_NUMBER)),
+                cur.getInt(cur.getColumnIndex(KEY_STOCKTAKING_NUMBER)),
                 getArticle(cur.getString(cur.getColumnIndex(KEY_RELATION_ARTICLE_CODE))),
                 cur.getDouble(cur.getColumnIndex(KEY_AMOUNT)),
                 cur.getString(cur.getColumnIndex(KEY_DATE)),
@@ -272,9 +291,16 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
     // all Results
-    public List<Result> getInventureResults(int inventureNumber) {
+    public List<Result> getAllResults() {
         List<Result> resList;
-        Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_RESULTS + " WHERE " + KEY_INVENTURE_NUMBER + " = " + inventureNumber, null);
+        Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_RESULTS, null);
+        resList = getListResultByCursor(cursor);
+        return resList;
+    }
+
+    public List<Result> getStocktakingResults(int stocktakingNumber) {
+        List<Result> resList;
+        Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_RESULTS + " WHERE " + KEY_STOCKTAKING_NUMBER + " = " + stocktakingNumber, null);
         resList = getListResultByCursor(cursor);
         return resList;
     }

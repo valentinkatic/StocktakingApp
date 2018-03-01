@@ -1,21 +1,17 @@
 package eu.fiskaljdoo.stocktaking.activities;
 
-import android.content.DialogInterface;
-import android.support.v7.app.AlertDialog;
+import android.os.Parcel;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.Button;
-import android.widget.NumberPicker;
 
 import java.util.List;
 
 import eu.fiskaljdoo.stocktaking.R;
+import eu.fiskaljdoo.stocktaking.adapters.AdapterStocktaking;
 import eu.fiskaljdoo.stocktaking.adapters.AdapterResults;
 import eu.fiskaljdoo.stocktaking.data.DatabaseHandler;
 import eu.fiskaljdoo.stocktaking.dialogs.DialogEditResult;
@@ -31,8 +27,6 @@ public class ActivityResults extends AppCompatActivity {
     private RecyclerView recyclerView;
     private AdapterResults adapterResults;
 
-    private int selectedInventureNumber;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -41,8 +35,7 @@ public class ActivityResults extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         db = new DatabaseHandler(this);
-        selectedInventureNumber = db.getLastResult().getInventureNumber();
-        results = db.getInventureResults(selectedInventureNumber);
+        results = db.getStocktakingResults(db.getLastResult().getStocktakingNumber());
 
         recyclerView = findViewById(R.id.rv);
         recyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
@@ -79,31 +72,26 @@ public class ActivityResults extends AppCompatActivity {
         }
     };
 
-    private void startNumberPickerDialog(){
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Broj inventure");
-        builder.setNegativeButton("Odustani", null);
-        builder.setPositiveButton("Postavi", null);
-
-        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_quantity_picker, null);
-        final NumberPicker np = dialogView.findViewById(R.id.numberPicker);
-        List<Integer> inventureNumbers = db.getInventureNumbers();
-        np.setMaxValue(inventureNumbers.size() > 0 ? inventureNumbers.get(inventureNumbers.size()-1) : 0);
-        np.setMinValue(inventureNumbers.size() > 0 ? inventureNumbers.get(0) : 0);
-        np.setValue(selectedInventureNumber);
-        np.setWrapSelectorWheel(false);
-
-        builder.setView(dialogView);
-        final AlertDialog dialog = builder.show();
-
-        Button setButton = dialog.getButton(DialogInterface.BUTTON_POSITIVE);
-        setButton.setOnClickListener(new View.OnClickListener() {
+    private void startStocktakingPickerDialog(){
+        Tools.startInventurePickerDialog(getSupportFragmentManager(), new AdapterStocktaking.StocktakingClickListener() {
             @Override
-            public void onClick(View v) {
-                selectedInventureNumber = np.getValue();
-                results = db.getInventureResults(selectedInventureNumber);
+            public void onClicked(int position, int in) {
+                if (position == 1){
+                    results = db.getAllResults();
+                } else {
+                    results = db.getStocktakingResults(in);
+                }
                 setAdapter();
-                dialog.dismiss();
+            }
+
+            @Override
+            public int describeContents() {
+                return 0;
+            }
+
+            @Override
+            public void writeToParcel(Parcel parcel, int i) {
+
             }
         });
     }
@@ -117,8 +105,8 @@ public class ActivityResults extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()){
-            case R.id.action_select_inventure_number:
-                startNumberPickerDialog();
+            case R.id.action_select_stocktaking_number:
+                startStocktakingPickerDialog();
                 break;
             default:
                 onBackPressed();

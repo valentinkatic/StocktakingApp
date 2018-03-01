@@ -10,7 +10,7 @@ import android.os.Parcelable;
 public class Result implements Parcelable{
 
     private int id;
-    private int inventureNumber;
+    private int stocktakingNumber;
     private Article article;
     private double amount;
     private String date;
@@ -23,9 +23,9 @@ public class Result implements Parcelable{
         this.article = article;
     }
 
-    public Result(int id, int inventureNumber, Article article, double amount, String date, String user) {
+    public Result(int id, int stocktakingNumber, Article article, double amount, String date, String user) {
         this.id = id;
-        this.inventureNumber = inventureNumber;
+        this.stocktakingNumber = stocktakingNumber;
         this.article = article;
         this.amount = amount;
         this.date = date;
@@ -40,12 +40,12 @@ public class Result implements Parcelable{
         this.id = id;
     }
 
-    public int getInventureNumber() {
-        return inventureNumber;
+    public int getStocktakingNumber() {
+        return stocktakingNumber;
     }
 
-    public void setInventureNumber(int inventureNumber) {
-        this.inventureNumber = inventureNumber;
+    public void setStocktakingNumber(int stocktakingNumber) {
+        this.stocktakingNumber = stocktakingNumber;
     }
 
     public Article getArticle() {
@@ -88,7 +88,7 @@ public class Result implements Parcelable{
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeInt(this.id);
-        dest.writeInt(this.inventureNumber);
+        dest.writeInt(this.stocktakingNumber);
         dest.writeParcelable(this.article, flags);
         dest.writeDouble(this.amount);
         dest.writeString(this.date);
@@ -97,7 +97,7 @@ public class Result implements Parcelable{
 
     protected Result(Parcel in) {
         this.id = in.readInt();
-        this.inventureNumber = in.readInt();
+        this.stocktakingNumber = in.readInt();
         this.article = in.readParcelable(Article.class.getClassLoader());
         this.amount = in.readDouble();
         this.date = in.readString();

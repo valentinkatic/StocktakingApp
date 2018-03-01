@@ -41,6 +41,7 @@ public class AdapterResults extends RecyclerView.Adapter<AdapterResults.ViewHold
         }
         Result current = results.get(position-1);
 
+        holder.tv_in.setText(current.getStocktakingNumber()+"");
         holder.tv_barcode.setText(current.getArticle().getCode());
         holder.tv_name.setText(current.getArticle().getName());
         holder.tv_amount.setText(String.format(Locale.getDefault(), "%s", new DecimalFormat("###,##0.##").format(current.getAmount())));
@@ -65,13 +66,14 @@ public class AdapterResults extends RecyclerView.Adapter<AdapterResults.ViewHold
     public class ViewHolder extends RecyclerView.ViewHolder{
 
         private LinearLayout parent_view;
-        private TextView tv_barcode, tv_name, tv_amount;
+        private TextView tv_in, tv_barcode, tv_name, tv_amount;
         private View separator;
 
         public ViewHolder(View itemView) {
             super(itemView);
 
             parent_view = itemView.findViewById(R.id.parent_view);
+            tv_in = itemView.findViewById(R.id.tv_in);
             tv_barcode = itemView.findViewById(R.id.tv_barcode);
             tv_name = itemView.findViewById(R.id.tv_name);
             tv_amount = itemView.findViewById(R.id.tv_amount);

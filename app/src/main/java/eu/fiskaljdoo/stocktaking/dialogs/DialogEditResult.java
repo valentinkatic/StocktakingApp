@@ -51,9 +51,11 @@ public class DialogEditResult extends DialogFragment {
         ((TextView) dialogView.findViewById(R.id.tv_barcode)).setText(result.getArticle().getCode());
         final EditText et_name = dialogView.findViewById(R.id.et_name);
         final EditText et_amount = dialogView.findViewById(R.id.et_amount);
+        final EditText et_price = dialogView.findViewById(R.id.et_price);
 
         et_name.setText(result.getArticle().getName());
         et_amount.setText(String.format(Locale.getDefault(), "%s", new DecimalFormat("###,##0.##").format(result.getAmount())));
+        et_price.setText(String.format(Locale.getDefault(), "%s", new DecimalFormat("###,##0.##").format(result.getArticle().getPrice())));
 
         builder.setView(dialogView);
         builder.setTitle("Unesite podatke");
@@ -62,14 +64,15 @@ public class DialogEditResult extends DialogFragment {
             public void onClick(DialogInterface dialogInterface, int i) {
                 Article a = result.getArticle();
                 a.setName(et_name.getText().toString());
+                a.setPrice(Double.parseDouble(et_price.getText().toString()));
                 db.updateArticle(a);
 
                 Result r = new Result();
-                if (Constants.inventureNumber == 0){
-                    r.setInventureNumber(++Constants.inventureNumber);
+                if (Constants.stocktakingNumber == 0){
+                    r.setStocktakingNumber(++Constants.stocktakingNumber);
                 } else {
-                    r.setInventureNumber(Constants.newInventureStarted ? ++Constants.inventureNumber : Constants.inventureNumber);
-                    Constants.newInventureStarted = false;
+                    r.setStocktakingNumber(Constants.newStocktakingStarted ? ++Constants.stocktakingNumber : Constants.stocktakingNumber);
+                    Constants.newStocktakingStarted = false;
                 }
                 r.setId(result.getId());
                 r.setArticle(a);

@@ -23,10 +23,12 @@ public class ActivitySimpleScanner extends AppCompatActivity implements ZXingSca
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mScannerView = new ZXingScannerView(this);   // Programmatically initialize the scanner view
-        db = new DatabaseHandler(this);
-        setContentView(mScannerView);                // Set the scanner view as the content view
 
+        mScannerView = new ZXingScannerView(this);
+        db = new DatabaseHandler(this);
+
+        setContentView(mScannerView);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
     }
 
     @Override
@@ -54,8 +56,14 @@ public class ActivitySimpleScanner extends AppCompatActivity implements ZXingSca
             }
         });
 
-        // Do something with the result here
-        Log.v(TAG, rawResult.getText()); // Prints scan results
-        Log.v(TAG, rawResult.getBarcodeFormat().toString()); // Prints the scan format (qrcode, pdf417 etc.)
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()){
+            default:
+                onBackPressed();
+        }
+        return super.onOptionsItemSelected(item);
     }
 }

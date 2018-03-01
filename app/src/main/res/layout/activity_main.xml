@@ -8,29 +8,104 @@
     tools:context="eu.fiskaljdoo.stocktaking.activities.ActivityMain"
     android:gravity="center">
 
-    <Button
+    <LinearLayout
+        android:id="@+id/lyt_start_scanner"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/btn_start_camera"
-        android:text="Pokreni kameru"
-        android:layout_marginTop="5dp"
-        android:layout_marginBottom="5dp"/>
+        android:foreground="?android:attr/selectableItemBackground"
+        android:clickable="true"
+        android:padding="16dp"
+        android:orientation="vertical"
+        android:layout_margin="5dp">
 
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/btn_show_all"
-        android:text="Prikaži sve rezultate"
-        android:layout_marginTop="5dp"
-        android:layout_marginBottom="5dp"/>
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:adjustViewBounds="true"
+            android:background="@drawable/layout_main_button"
+            android:padding="16dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/ic_scanner" />
 
-    <Button
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:textSize="20sp"
+            android:gravity="center_horizontal"
+            android:layout_marginTop="3dp"
+            android:text="Pokreni skener" />
+    </LinearLayout>
+
+    <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/btn_backup"
-        android:text="Backup"
-        android:layout_marginTop="5dp"
-        android:layout_marginBottom="5dp"
-        android:visibility="gone"/>
+        android:orientation="horizontal">
+
+        <LinearLayout
+            android:id="@+id/lyt_show_all"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:foreground="?android:attr/selectableItemBackground"
+            android:clickable="true"
+            android:padding="16dp"
+            android:orientation="vertical"
+            android:layout_margin="5dp"
+            android:layout_weight="1">
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:adjustViewBounds="true"
+                android:background="@drawable/layout_main_button"
+                android:padding="16dp"
+                android:scaleType="centerCrop"
+                android:src="@drawable/ic_database" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:textSize="20sp"
+                android:gravity="center_horizontal"
+                android:layout_marginTop="3dp"
+                android:text="Prikaži rezultate" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/lyt_backup"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:foreground="?android:attr/selectableItemBackground"
+            android:clickable="true"
+            android:padding="16dp"
+            android:orientation="vertical"
+            android:layout_margin="5dp"
+            android:layout_weight="1">
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:adjustViewBounds="true"
+                android:background="@drawable/layout_main_button"
+                android:padding="16dp"
+                android:scaleType="centerCrop"
+                android:src="@drawable/ic_export" />
+
+            <TextView
+                android:id="@+id/tvSearchCaption"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:textSize="20sp"
+                android:gravity="center_horizontal"
+                android:layout_marginTop="3dp"
+                android:text="Export" />
+        </LinearLayout>
+
+    </LinearLayout>
 
 </LinearLayout>
