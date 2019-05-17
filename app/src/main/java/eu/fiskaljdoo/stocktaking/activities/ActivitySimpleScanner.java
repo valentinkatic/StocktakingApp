@@ -46,7 +46,6 @@ public class ActivitySimpleScanner extends AppCompatActivity implements ZXingSca
 
     @Override
     public void handleResult(Result rawResult) {
-
         eu.fiskaljdoo.stocktaking.models.Result result = db.getResult(rawResult.getText());
         Tools.startEditResultDialog(getSupportFragmentManager(), result, new DialogEditResult.OnDismissListener() {
             @Override
@@ -60,7 +59,7 @@ public class ActivitySimpleScanner extends AppCompatActivity implements ZXingSca
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()){
+        switch (item.getItemId()) {
             default:
                 onBackPressed();
         }
